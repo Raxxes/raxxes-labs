@@ -41,9 +41,10 @@ return (
 RAXXES<span style={{ color: "#FF6A00" }}> LABS.</span>
 </a>
 
-    <a href="#articles" style={styles.navLink}>
-      THE JOURNAL ↗
-    </a>
+    <div style={{ display: "flex", alignItems: "center", gap: "18px" }}>
+      <a href="/tools" style={styles.navLink}>DEVELOPER TOOLS ↗</a>
+      <a href="#articles" style={styles.navLink}>THE JOURNAL ↗</a>
+    </div>
   </nav>
 
   <section style={styles.hero}>
