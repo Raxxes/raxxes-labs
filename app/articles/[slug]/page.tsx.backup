@@ -1,0 +1,129 @@
+import { notFound } from "next/navigation";
+import ArticleReader from "./ArticleReader";
+
+const articles = {
+  "building-for-the-modern-web": {
+    category: "WEB DEVELOPMENT",
+    title: "Building for the Modern Web",
+    description:
+      "A practical introduction to building better web experiences.",
+    readTime: "5 MIN READ",
+    sections: [
+      {
+        heading: "Start with the Fundamentals",
+        paragraphs: [
+          "Great web projects begin with a clear understanding of the problem. Before choosing frameworks or libraries, decide what the user needs and how the experience should work.",
+          "HTML provides structure, CSS controls presentation, and JavaScript adds interactivity. Understanding these foundations makes modern frameworks easier to learn.",
+        ],
+      },
+      {
+        heading: "Build Something Real",
+        paragraphs: [
+          "Tutorials are useful, but building your own projects teaches you how different parts of an application work together.",
+          "Start small, test frequently, and improve your project one feature at a time. Every error is an opportunity to understand the system better.",
+        ],
+      },
+      {
+        heading: "Keep Learning",
+        paragraphs: [
+          "Web development evolves constantly. Focus on understanding concepts instead of chasing every new tool.",
+          "Document what you learn and revisit older projects to see how your skills improve.",
+        ],
+      },
+    ],
+  },
+
+  "inside-the-ai-playground": {
+    category: "AI & EXPERIMENTS",
+    title: "Inside the AI Playground",
+    description:
+      "Exploring artificial intelligence through practical experiments.",
+    readTime: "4 MIN READ",
+    sections: [
+      {
+        heading: "Learn Through Experimentation",
+        paragraphs: [
+          "Artificial intelligence becomes easier to understand when you experiment with real problems rather than only reading about the technology.",
+          "Choose a small task, test an AI tool, and observe where its output is useful and where it needs human review.",
+        ],
+      },
+      {
+        heading: "Understand the Limitations",
+        paragraphs: [
+          "AI tools can make mistakes, misunderstand instructions, and produce convincing but incorrect information.",
+          "Verify important results, protect private information, and use AI to support your thinking.",
+        ],
+      },
+    ],
+  },
+
+  "debugging-is-a-superpower": {
+    category: "DEVELOPER NOTES",
+    title: "Debugging Is a Superpower",
+    description:
+      "Turn confusing errors into useful lessons.",
+    readTime: "4 MIN READ",
+    sections: [
+      {
+        heading: "Read the Error Carefully",
+        paragraphs: [
+          "When something breaks, resist the urge to change several things at once. Start by reading the error message and identifying the file or operation involved.",
+          "An error message often tells you where to begin investigating, even when the underlying cause is somewhere else.",
+        ],
+      },
+      {
+        heading: "Change One Thing at a Time",
+        paragraphs: [
+          "Reproduce the problem, test one explanation, and observe what changes. This makes it easier to identify the actual cause.",
+          "Once the problem is solved, record what happened and why the fix worked. That knowledge will help you debug similar issues in the future.",
+        ],
+      },
+    ],
+  },
+};
+
+type ArticleSlug = keyof typeof articles;
+
+export function generateStaticParams() {
+  return Object.keys(articles).map((slug) => ({ slug }));
+}
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}) {
+  const { slug } = await params;
+  const article = articles[slug as ArticleSlug];
+
+  return {
+    title: article
+      ? `${article.title} | Raxxes Labs`
+      : "Article Not Found | Raxxes Labs",
+    description:
+      article?.description ?? "Explore articles on Raxxes Labs.",
+  };
+}
+
+export default async function ArticlePage({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}) {
+  const { slug } = await params;
+  const article = articles[slug as ArticleSlug];
+
+  if (!article) {
+    notFound();
+  }
+
+  return (
+    <ArticleReader
+      title={article.title}
+      category={article.category}
+      description={article.description}
+      readTime={article.readTime}
+      sections={article.sections}
+    />
+  );
+}

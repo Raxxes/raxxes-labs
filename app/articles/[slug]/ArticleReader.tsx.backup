@@ -1,0 +1,527 @@
+"use client";
+
+import { useEffect, useState } from "react";
+
+type Section = {
+  heading: string;
+  paragraphs: string[];
+};
+
+type ArticleReaderProps = {
+  title: string;
+  category: string;
+  description: string;
+  readTime: string;
+  sections: Section[];
+};
+
+export default function ArticleReader({
+  title,
+  category,
+  description,
+  readTime,
+  sections,
+}: ArticleReaderProps) {
+  const [progress, setProgress] = useState(0);
+  const [activeSection, setActiveSection] = useState("");
+
+  useEffect(() => {
+    function updateProgress() {
+      const scrollable =
+        document.documentElement.scrollHeight - window.innerHeight;
+
+      const current =
+        scrollable > 0 ? (window.scrollY / scrollable) * 100 : 0;
+
+      setProgress(Math.min(100, Math.max(0, current)));
+    }
+
+    function updateActiveSection() {
+      let current = "";
+
+      for (const section of sections) {
+        const element = document.getElementById(
+          createId(section.heading)
+        );
+
+        if (element && element.getBoundingClientRect().top < 180) {
+          current = createId(section.heading);
+        }
+      }
+
+      setActiveSection(current);
+    }
+
+    function handleScroll() {
+      updateProgress();
+      updateActiveSection();
+    }
+
+    handleScroll();
+
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    window.addEventListener("resize", handleScroll);
+
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+      window.removeEventListener("resize", handleScroll);
+    };
+  }, [sections]);
+
+  return (
+    <>
+      <div style={styles.progressTrack}>
+        <div
+          style={{
+            ...styles.progressBar,
+            width: `${progress}%`,
+          }}
+        />
+      </div>
+
+      <main style={styles.page}>
+        <header style={styles.nav}>
+          <a href="/" style={styles.brand}>
+            RAXXES<span style={{ color: "#FF6A00" }}> LABS.</span>
+          </a>
+
+          <a href="/#articles" style={styles.back}>
+            ← ALL ARTICLES
+          </a>
+        </header>
+
+        <div className="article-layout" style={styles.layout}>
+          <article style={styles.article}>
+            <p style={styles.category}>{category}</p>
+
+            <h1 style={styles.title}>{title}</h1>
+
+            <p style={styles.description}>{description}</p>
+
+            <div style={styles.meta}>
+              <span>RAXXES LABS EDITORIAL</span>
+              <span>{readTime}</span>
+            </div>
+
+            <div style={styles.divider} />
+
+            <aside className="mobile-toc" style={styles.mobileToc}>
+              <p style={styles.sidebarLabel}>IN THIS ARTICLE</p>
+
+              {sections.map((section, index) => {
+                const id = createId(section.heading);
+
+                return (
+                  <a
+                    key={id}
+                    href={`#${id}`}
+                    style={{
+                      ...styles.tocLink,
+                      ...(activeSection === id
+                        ? styles.activeTocLink
+                        : {}),
+                    }}
+                  >
+                    <span style={styles.tocNumber}>
+                      {String(index + 1).padStart(2, "0")}
+                    </span>
+                    <span>{section.heading}</span>
+                  </a>
+                );
+              })}
+
+              <div style={styles.mobileProgressInfo}>
+                <span>YOUR READING PROGRESS</span>
+                <span style={{ color: "#FF6A00" }}>
+                  {Math.round(progress)}%
+                </span>
+              </div>
+
+              <div style={styles.smallProgressTrack}>
+                <div
+                  style={{
+                    ...styles.smallProgressBar,
+                    width: `${progress}%`,
+                  }}
+                />
+              </div>
+            </aside>
+
+            {sections.map((section) => {
+              const id = createId(section.heading);
+
+              return (
+                <section
+                  key={id}
+                  id={id}
+                  style={styles.section}
+                >
+                  <h2 style={styles.heading}>{section.heading}</h2>
+
+                  {section.paragraphs.map((paragraph, index) => (
+                    <p key={index} style={styles.paragraph}>
+                      {paragraph}
+                    </p>
+                  ))}
+                </section>
+              );
+            })}
+
+            <div style={styles.end}>
+              <p style={styles.category}>
+                BUILD. BREAK. LEARN. REPEAT.
+              </p>
+
+              <h2 style={styles.endTitle}>
+                Keep building.
+                <br />
+                Keep exploring.
+              </h2>
+
+              <a href="/#articles" style={styles.back}>
+                ← EXPLORE MORE ARTICLES
+              </a>
+            </div>
+          </article>
+
+          <aside className="desktop-toc" style={styles.sidebar}>
+            <p style={styles.sidebarLabel}>IN THIS ARTICLE</p>
+
+            {sections.map((section, index) => {
+              const id = createId(section.heading);
+
+              return (
+                <a
+                  key={id}
+                  href={`#${id}`}
+                  style={{
+                    ...styles.tocLink,
+                    ...(activeSection === id
+                      ? styles.activeTocLink
+                      : {}),
+                  }}
+                >
+                  <span style={styles.tocNumber}>
+                    {String(index + 1).padStart(2, "0")}
+                  </span>
+
+                  <span>{section.heading}</span>
+                </a>
+              );
+            })}
+
+            <div style={styles.sidebarDivider} />
+
+            <p style={styles.sidebarLabel}>YOUR PROGRESS</p>
+
+            <div style={styles.progressInfo}>
+              <span>Reading</span>
+              <span style={{ color: "#FF6A00" }}>
+                {Math.round(progress)}%
+              </span>
+            </div>
+
+            <div style={styles.smallProgressTrack}>
+              <div
+                style={{
+                  ...styles.smallProgressBar,
+                  width: `${progress}%`,
+                }}
+              />
+            </div>
+          </aside>
+        </div>
+
+        <footer style={styles.footer}>
+          © 2026 Raxxes Labs — Built with curiosity.
+        </footer>
+      </main>
+
+      <style>{`
+        * {
+          box-sizing: border-box;
+        }
+
+        html {
+          scroll-behavior: smooth;
+        }
+
+        .article-layout {
+          width: 100%;
+        }
+
+        .mobile-toc {
+          display: none;
+        }
+
+        .desktop-toc {
+          display: block;
+        }
+
+        @media (max-width: 760px) {
+          .article-layout {
+            display: block !important;
+            width: 100% !important;
+            max-width: 100% !important;
+            margin: 28px auto !important;
+          }
+
+          .mobile-toc {
+            display: block !important;
+            width: 100%;
+            margin: 30px 0 38px;
+          }
+
+          .desktop-toc {
+            display: none !important;
+          }
+        }
+
+        @media (max-width: 480px) {
+          .article-page-unused {
+            padding: 0;
+          }
+        }
+      `}</style>
+    </>
+  );
+}
+
+function createId(text: string) {
+  return text
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "");
+}
+
+const styles: Record<string, React.CSSProperties> = {
+  progressTrack: {
+    position: "fixed",
+    top: 0,
+    left: 0,
+    width: "100%",
+    height: 3,
+    background: "#252529",
+    zIndex: 1000,
+  },
+
+  progressBar: {
+    height: "100%",
+    background: "#FF6A00",
+    transition: "width 0.1s linear",
+  },
+
+  page: {
+    minHeight: "100vh",
+    background: "#0B0B0D",
+    color: "#F5F5F5",
+    fontFamily: "Arial, Helvetica, sans-serif",
+    padding: "0 7%",
+    overflowX: "clip",
+  },
+
+  nav: {
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
+    flexWrap: "wrap",
+    gap: 15,
+    padding: "25px 0",
+    borderBottom: "1px solid #252529",
+  },
+
+  brand: {
+    fontSize: 20,
+    fontWeight: "bold",
+    color: "#F5F5F5",
+    textDecoration: "none",
+  },
+
+  back: {
+    color: "#FF6A00",
+    fontSize: 11,
+    letterSpacing: 1,
+    textDecoration: "none",
+  },
+
+  layout: {
+    display: "grid",
+    gridTemplateColumns: "minmax(0, 760px) minmax(180px, 230px)",
+    gap: 65,
+    justifyContent: "center",
+    alignItems: "start",
+    maxWidth: 1150,
+    margin: "60px auto",
+  },
+
+  article: {
+    minWidth: 0,
+    width: "100%",
+  },
+
+  category: {
+    color: "#FF6A00",
+    fontSize: 11,
+    letterSpacing: 3,
+    lineHeight: 1.8,
+  },
+
+  title: {
+    fontSize: "clamp(34px, 6vw, 68px)",
+    lineHeight: 1.12,
+    letterSpacing: -1.5,
+    margin: "22px 0",
+    overflowWrap: "anywhere",
+  },
+
+  description: {
+    color: "#A1A1AA",
+    fontSize: 18,
+    lineHeight: 1.8,
+    overflowWrap: "break-word",
+  },
+
+  meta: {
+    display: "flex",
+    flexWrap: "wrap",
+    gap: 15,
+    marginTop: 25,
+    color: "#85858E",
+    fontSize: 10,
+    letterSpacing: 1,
+  },
+
+  divider: {
+    borderTop: "1px solid #252529",
+    margin: "35px 0",
+  },
+
+  section: {
+    marginBottom: 42,
+    scrollMarginTop: 35,
+    minWidth: 0,
+  },
+
+  heading: {
+    fontSize: "clamp(23px, 4vw, 27px)",
+    lineHeight: 1.4,
+    marginBottom: 18,
+    letterSpacing: -0.5,
+    overflowWrap: "break-word",
+  },
+
+  paragraph: {
+    color: "#B1B1BA",
+    fontSize: 16,
+    lineHeight: 1.9,
+    marginBottom: 20,
+    overflowWrap: "break-word",
+  },
+
+  sidebar: {
+    position: "sticky",
+    top: 35,
+    padding: 22,
+    background: "#121216",
+    border: "1px solid #29292F",
+    borderRadius: 5,
+    minWidth: 0,
+  },
+
+  mobileToc: {
+    display: "none",
+    padding: 18,
+    background: "#121216",
+    border: "1px solid #29292F",
+    borderRadius: 5,
+  },
+
+  sidebarLabel: {
+    color: "#777780",
+    fontSize: 10,
+    letterSpacing: 2,
+    marginBottom: 15,
+  },
+
+  tocLink: {
+    display: "flex",
+    alignItems: "flex-start",
+    gap: 12,
+    padding: "12px 0",
+    color: "#A1A1AA",
+    fontSize: 12,
+    lineHeight: 1.7,
+    textDecoration: "none",
+    borderBottom: "1px solid #252529",
+  },
+
+  activeTocLink: {
+    color: "#FF6A00",
+  },
+
+  tocNumber: {
+    color: "#FF6A00",
+    fontSize: 10,
+    paddingTop: 3,
+    flexShrink: 0,
+  },
+
+  sidebarDivider: {
+    borderTop: "1px solid #303036",
+    margin: "25px 0",
+  },
+
+  progressInfo: {
+    display: "flex",
+    justifyContent: "space-between",
+    gap: 10,
+    color: "#A1A1AA",
+    fontSize: 12,
+    marginBottom: 12,
+  },
+
+  mobileProgressInfo: {
+    display: "flex",
+    justifyContent: "space-between",
+    gap: 10,
+    color: "#A1A1AA",
+    fontSize: 10,
+    letterSpacing: 1,
+    marginTop: 22,
+    marginBottom: 12,
+  },
+
+  smallProgressTrack: {
+    height: 4,
+    background: "#303036",
+    borderRadius: 4,
+    overflow: "hidden",
+  },
+
+  smallProgressBar: {
+    height: "100%",
+    background: "#FF6A00",
+    transition: "width 0.1s linear",
+  },
+
+  end: {
+    borderTop: "1px solid #252529",
+    paddingTop: 25,
+    marginTop: 55,
+    paddingBottom: 30,
+  },
+
+  endTitle: {
+    fontSize: 32,
+    lineHeight: 1.4,
+    margin: "20px 0",
+  },
+
+  footer: {
+    borderTop: "1px solid #252529",
+    padding: "25px 0",
+    color: "#777780",
+    fontSize: 12,
+    textAlign: "center",
+  },
+};
